@@ -3,7 +3,7 @@ name = "dog-go-around"
 version = "0.1.0"
 description = "A fast-paced multiplayer racing game built with the Ursina engine"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 authors = [
     { name = "ToanLe147", email = "" }
 ]

@@ -1,0 +1,2 @@
+# This is a placeholder for countdown sound.
+# Replace this file with actual countdown.wav or countdown.ogg audio file.

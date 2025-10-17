@@ -1,0 +1,2 @@
+# This is a placeholder for background music.
+# Replace this file with actual music.wav or music.ogg audio file.

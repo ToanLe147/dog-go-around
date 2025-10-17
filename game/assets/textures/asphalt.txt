@@ -1,0 +1,2 @@
+# This is a placeholder for the asphalt texture.
+# Replace this file with actual asphalt.png or asphalt.jpg texture file.

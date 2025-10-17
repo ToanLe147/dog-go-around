@@ -1,0 +1,2 @@
+# This is a placeholder for the grass texture.
+# Replace this file with actual grass.png or grass.jpg texture file.

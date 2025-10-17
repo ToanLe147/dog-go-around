@@ -1,0 +1,59 @@
+"""Game configuration settings."""
+
+import os
+
+
+# Display settings
+WINDOW_TITLE = "Dog Go Around"
+WINDOW_WIDTH = 1920
+WINDOW_HEIGHT = 1080
+WINDOW_FULLSCREEN = False
+WINDOW_BORDERLESS = False
+FOV = 90
+FPS_CAP = 60
+
+# Graphics settings
+ENABLE_SHADOWS = True
+ENABLE_ANTIALIASING = True
+RENDER_DISTANCE = 1000
+
+# Physics settings
+GRAVITY = -20.0
+MAX_SPEED = 50.0
+ACCELERATION = 15.0
+BRAKE_FORCE = 30.0
+TURN_SPEED = 120.0
+DRIFT_FACTOR = 0.8
+FRICTION = 0.95
+AIR_RESISTANCE = 0.98
+BOOST_MULTIPLIER = 2.0
+BOOST_DURATION = 2.0
+
+# Race settings
+LAP_COUNT = 3
+COUNTDOWN_TIME = 3
+CHECKPOINT_RADIUS = 5.0
+RESPAWN_COOLDOWN = 2.0
+
+# Network settings
+DEFAULT_SERVER_HOST = os.environ.get("DOG_SERVER_HOST", "0.0.0.0")
+DEFAULT_SERVER_PORT = int(os.environ.get("DOG_SERVER_PORT", 7777))
+TICKRATE = int(os.environ.get("DOG_TICKRATE", 60))
+SNAPSHOT_RATE = int(os.environ.get("DOG_SNAPSHOT_RATE", 30))
+MAX_PLAYERS = 8
+INTERPOLATION_DELAY = 0.1
+PREDICTION_ENABLED = True
+
+# Input settings
+DEADZONE = 0.1
+
+# Audio settings
+MASTER_VOLUME = 1.0
+MUSIC_VOLUME = 0.7
+SFX_VOLUME = 0.8
+
+# Debug settings
+DEBUG_MODE = False
+SHOW_FPS = True
+SHOW_PHYSICS_DEBUG = False
+SHOW_CHECKPOINT_DEBUG = False

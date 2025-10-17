@@ -1,7 +1,8 @@
-"""Main game application with Pygame."""
+"""Main game application using Pyglet."""
 
-import pygame
 import sys
+import pyglet
+from pyglet.window import key, mouse
 from game import config
 
 
@@ -10,17 +11,15 @@ class Game:
 
     def __init__(self, offline_mode=False, player_name="Player1"):
         """Initialize the game."""
-        pygame.init()
-
-        # Set up display
-        flags = pygame.FULLSCREEN if config.FULLSCREEN else 0
-        self.screen = pygame.display.set_mode(
-            (config.WINDOW_WIDTH, config.WINDOW_HEIGHT), flags
+        # Create window
+        self.window = pyglet.window.Window(
+            width=config.WINDOW_WIDTH,
+            height=config.WINDOW_HEIGHT,
+            caption=config.WINDOW_TITLE,
+            fullscreen=config.FULLSCREEN,
         )
-        pygame.display.set_caption(config.WINDOW_TITLE)
-
-        # Clock for managing FPS
-        self.clock = pygame.time.Clock()
+        self.window.push_handlers(self)
+        self.clock = pyglet.clock
 
         # Game state
         self.running = True
@@ -36,90 +35,110 @@ class Game:
 
         self.track = Track()
         self.player_car = Car(100, 100, config.COLOR_PLAYER, is_player=True)
-        self.menu = Menu(self.screen)
-        self.hud = HUD(self.screen)
+        self.menu = Menu(self.window)
+        self.hud = HUD(self.window)
         self.cars = [self.player_car]
+
+        # Key state handler for polling
+        self.keys = key.KeyStateHandler()
+        self.window.push_handlers(self.keys)
 
         # Camera offset for following player
         self.camera_x = 0
         self.camera_y = 0
 
     def run(self):
-        """Main game loop."""
-        while self.running:
-            dt = self.clock.tick(config.FPS) / 1000.0  # Delta time in seconds
-
-            self.handle_events()
-            self.update(dt)
-            self.render()
-
-        pygame.quit()
+        """Main game loop: schedule updates and start pyglet app."""
+        self.clock.schedule_interval(self._update, 1.0 / config.FPS)
+        pyglet.app.run()
         sys.exit()
 
-    def handle_events(self):
-        """Handle user input events."""
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
+    # Pyglet event handlers
+    def on_close(self):
+        pyglet.app.exit()
 
-            if self.state == "menu":
-                action = self.menu.handle_event(event)
-                if action == "start":
-                    self.start_race()
-                elif action == "quit":
-                    self.running = False
+    def on_key_press(self, symbol, modifiers):
+        if self.state == "menu":
+            action = self.menu.on_key_press(symbol)
+            if action == "start":
+                self.start_race()
+            elif action == "quit":
+                pyglet.app.exit()
+        elif self.state == "racing":
+            if symbol == key.ESCAPE:
+                self.state = "paused"
+        elif self.state == "paused":
+            if symbol == key.ESCAPE:
+                self.state = "racing"
+            elif symbol == key.Q:
+                self.state = "menu"
 
-            elif self.state == "racing":
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.state = "paused"
+    def on_mouse_press(self, x, y, button, modifiers):
+        if self.state == "menu":
+            action = self.menu.on_mouse_press(x, y, button)
+            if action == "start":
+                self.start_race()
+            elif action == "quit":
+                pyglet.app.exit()
 
-            elif self.state == "paused":
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.state = "racing"
-                    elif event.key == pygame.K_q:
-                        self.state = "menu"
-
-    def update(self, dt):
-        """Update game logic."""
+    def _update(self, dt):
+        """Scheduled update function for pyglet."""
         if self.state == "racing":
-            # Get input
-            keys = pygame.key.get_pressed()
+            # Input flags
+            k = key
+            accel = self.keys[k.W] or self.keys[k.UP]
+            brake = self.keys[k.S] or self.keys[k.DOWN]
+            left = self.keys[k.A] or self.keys[k.LEFT]
+            right = self.keys[k.D] or self.keys[k.RIGHT]
 
             # Update player car
-            self.player_car.update(dt, keys, self.track)
+            self.player_car.update(dt, accel, brake, left, right, self.track)
 
-            # Update camera to follow player
+            # Camera follow
             self.camera_x = self.player_car.x - config.WINDOW_WIDTH // 2
             self.camera_y = self.player_car.y - config.WINDOW_HEIGHT // 2
 
             # Update HUD
             self.hud.update(self.player_car)
 
-    def render(self):
-        """Render the game."""
-        self.screen.fill(config.COLOR_BACKGROUND)
+    def on_draw(self):
+        self.window.clear()
+        batch = pyglet.graphics.Batch()
 
         if self.state == "menu":
-            self.menu.render()
-
+            # Background
+            try:
+                bg = pyglet.shapes.Rectangle(
+                    0,
+                    0,
+                    config.WINDOW_WIDTH,
+                    config.WINDOW_HEIGHT,
+                    color=config.COLOR_BACKGROUND,
+                    batch=batch,
+                )
+            except Exception:
+                pass
+            self.menu.render(batch)
         elif self.state in ["racing", "paused"]:
-            # Render track with camera offset
-            self.track.render(self.screen, self.camera_x, self.camera_y)
-
-            # Render cars
+            # Background
+            try:
+                bg = pyglet.shapes.Rectangle(
+                    0,
+                    0,
+                    config.WINDOW_WIDTH,
+                    config.WINDOW_HEIGHT,
+                    color=config.COLOR_BACKGROUND,
+                    batch=batch,
+                )
+            except Exception:
+                pass
+            self.track.render(batch, self.camera_x, self.camera_y)
             for car in self.cars:
-                car.render(self.screen, self.camera_x, self.camera_y)
-
-            # Render HUD
+                car.render(batch, self.camera_x, self.camera_y)
             self.hud.render()
-
-            # Render pause overlay
             if self.state == "paused":
                 self.render_pause_overlay()
-
-        pygame.display.flip()
+        batch.draw()
 
     def start_race(self):
         """Start a new race."""
@@ -128,32 +147,15 @@ class Game:
 
     def render_pause_overlay(self):
         """Render pause menu overlay."""
-        # Semi-transparent overlay
-        overlay = pygame.Surface((config.WINDOW_WIDTH, config.WINDOW_HEIGHT))
-        overlay.set_alpha(128)
-        overlay.fill((0, 0, 0))
-        self.screen.blit(overlay, (0, 0))
-
-        # Pause text
-        font = pygame.font.Font(None, 74)
-        text = font.render("PAUSED", True, config.COLOR_TEXT)
-        text_rect = text.get_rect(
-            center=(config.WINDOW_WIDTH // 2, config.WINDOW_HEIGHT // 2 - 50)
+        # Simple pause overlay text using pyglet labels
+        label = pyglet.text.Label(
+            "PAUSED",
+            font_name=None,
+            font_size=48,
+            x=config.WINDOW_WIDTH // 2,
+            y=config.WINDOW_HEIGHT // 2,
+            anchor_x="center",
+            anchor_y="center",
+            color=(255, 255, 255, 255),
         )
-        self.screen.blit(text, text_rect)
-
-        # Instructions
-        font_small = pygame.font.Font(None, 36)
-        resume_text = font_small.render("Press ESC to resume", True, config.COLOR_TEXT)
-        resume_rect = resume_text.get_rect(
-            center=(config.WINDOW_WIDTH // 2, config.WINDOW_HEIGHT // 2 + 20)
-        )
-        self.screen.blit(resume_text, resume_rect)
-
-        quit_text = font_small.render(
-            "Press Q to quit to menu", True, config.COLOR_TEXT
-        )
-        quit_rect = quit_text.get_rect(
-            center=(config.WINDOW_WIDTH // 2, config.WINDOW_HEIGHT // 2 + 60)
-        )
-        self.screen.blit(quit_text, quit_rect)
+        label.draw()

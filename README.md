@@ -1,6 +1,6 @@
-# Dog Go Around — Pygame Edition
+# Dog Go Around — Pyglet Edition
 
-A simple top‑down racing prototype built with Pygame. It features smooth car controls, an oval track with checkpoints, a basic menu, and a lightweight HUD.
+A simple top‑down racing prototype built with Pyglet. It features smooth car controls, an oval track with checkpoints, a basic menu, and a lightweight HUD.
 
 ## Features
 

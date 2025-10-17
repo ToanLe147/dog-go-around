@@ -1,4 +1,4 @@
-"""Entry point for Dog Go Around racing game."""
+"""Entry point for Dog Go Around racing game (Pyglet)."""
 
 import argparse
 from game.game import Game
@@ -24,14 +24,11 @@ def main():
         default="127.0.0.1:7777",
         help="Server address (host:port)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Start the game
-    game = Game(
-        offline_mode=args.offline,
-        player_name=args.name
-    )
+    game = Game(offline_mode=args.offline, player_name=args.name)
     game.run()
 
 

@@ -32,12 +32,12 @@ NETWORK_UPDATE_RATE = 30  # updates per second
 MUSIC_VOLUME = 0.7
 SFX_VOLUME = 0.8
 
-# Colors (RGB)
-COLOR_BACKGROUND = (34, 139, 34)  # Forest green
-COLOR_TRACK = (64, 64, 64)  # Dark gray
-COLOR_TRACK_BORDER = (255, 255, 255)  # White
-COLOR_PLAYER = (0, 0, 255)  # Blue
-COLOR_OPPONENT = (255, 0, 0)  # Red
-COLOR_CHECKPOINT = (255, 255, 0)  # Yellow
-COLOR_TEXT = (255, 255, 255)  # White
-COLOR_UI_BG = (0, 0, 0, 180)  # Semi-transparent black
+# Colors
+COLOR_BACKGROUND = (34, 139, 34)  # Forest green (RGB)
+COLOR_TRACK = (64, 64, 64)  # Dark gray (RGB)
+COLOR_TRACK_BORDER = (255, 255, 255)  # White (RGB)
+COLOR_PLAYER = (0, 0, 255)  # Blue (RGB)
+COLOR_OPPONENT = (255, 0, 0)  # Red (RGB)
+COLOR_CHECKPOINT = (255, 255, 0)  # Yellow (RGB)
+COLOR_TEXT = (255, 255, 255)  # White (RGB)
+COLOR_UI_BG = (0, 0, 0, 180)  # Semi-transparent black (RGBA)

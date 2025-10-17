@@ -1,7 +1,6 @@
-"""Car entity with simple 2D physics for Pygame."""
+"""Car entity with simple 2D physics (framework-agnostic)."""
 
 import math
-import pygame
 from game import config
 
 
@@ -25,16 +24,21 @@ class Car:
         self.vx = 0.0
         self.vy = 0.0
 
-    def update(self, dt, keys, track):
-        """Update car physics and position."""
+    def update(
+        self, dt, accelerating, braking, turning_left, turning_right, track=None
+    ):
+        """Update car physics and position.
+
+        Args:
+            dt: Delta time in seconds.
+            accelerating: True if throttle pressed.
+            braking: True if brake/reverse pressed.
+            turning_left: True if steering left.
+            turning_right: True if steering right.
+            track: Optional track reference (unused for now).
+        """
         if not self.is_player:
             return
-
-        # Input handling
-        accelerating = keys[pygame.K_w] or keys[pygame.K_UP]
-        braking = keys[pygame.K_s] or keys[pygame.K_DOWN]
-        turning_left = keys[pygame.K_a] or keys[pygame.K_LEFT]
-        turning_right = keys[pygame.K_d] or keys[pygame.K_RIGHT]
 
         # Apply acceleration / brake
         if accelerating:
@@ -74,26 +78,25 @@ class Car:
         self.vx = 0.0
         self.vy = 0.0
 
-    def render(self, screen, camera_x, camera_y):
-        """Render the car."""
-        screen_x = int(self.x - camera_x)
-        screen_y = int(self.y - camera_y)
+    def render(self, batch, camera_x, camera_y):
+        """Render the car using a rotated rectangle in pyglet."""
+        try:
+            from pyglet import shapes
+        except Exception:
+            return
 
-        # Car surface
-        surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        pygame.draw.rect(surf, self.color, (0, 0, self.width, self.height))
-        pygame.draw.rect(surf, (255, 255, 255), (0, 0, self.width, self.height), 2)
-        # Direction arrow
-        pygame.draw.polygon(
-            surf,
-            (255, 255, 0),
-            [
-                (self.width // 2, 5),
-                (self.width // 2 - 8, 20),
-                (self.width // 2 + 8, 20),
-            ],
+        screen_x = self.x - camera_x
+        screen_y = self.y - camera_y
+
+        rect = shapes.Rectangle(
+            screen_x, screen_y, self.width, self.height, color=self.color, batch=batch
         )
-
-        rotated = pygame.transform.rotate(surf, -self.angle)
-        rect = rotated.get_rect(center=(screen_x, screen_y))
-        screen.blit(rotated, rect)
+        # rotate around center
+        try:
+            rect.anchor_position = (self.width / 2, self.height / 2)
+        except Exception:
+            pass
+        try:
+            rect.rotation = self.angle
+        except Exception:
+            pass

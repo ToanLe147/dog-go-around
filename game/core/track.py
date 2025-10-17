@@ -1,4 +1,4 @@
-"""Track rendering and collision for Pygame.
+"""Track rendering and collision for Pyglet.
 
 Provides an oval track with inner/outer boundaries, dashed center line,
 and visual checkpoints. Includes a helper to test if a point lies on the
@@ -6,7 +6,7 @@ drivable band of the track.
 """
 
 import math
-import pygame
+import pyglet
 from game import config
 
 
@@ -54,51 +54,84 @@ class Track:
                 checkpoint_y = self.center_y + math.sin(angle) * self.radius_y
                 self.checkpoint_points.append((checkpoint_x, checkpoint_y))
 
-    def render(self, screen, camera_x, camera_y):
-        """Render the track."""
-        # Outer area
-        outer_screen_points = [
-            (x - camera_x, y - camera_y) for x, y in self.outer_points
-        ]
-        pygame.draw.polygon(screen, config.COLOR_TRACK, outer_screen_points)
+    def render(self, batch, camera_x, camera_y):
+        """Render the track using pyglet shapes and lines into the given batch."""
+        # Build vertex lists for polygons (outer and inner)
+        outer = []
+        for x, y in self.outer_points:
+            outer.extend([x - camera_x, y - camera_y])
+        inner = []
+        for x, y in self.inner_points:
+            inner.extend([x - camera_x, y - camera_y])
 
-        # Inner cut-out
-        inner_screen_points = [
-            (x - camera_x, y - camera_y) for x, y in self.inner_points
-        ]
-        pygame.draw.polygon(screen, config.COLOR_BACKGROUND, inner_screen_points)
+        # Filled outer polygon (approximation via triangle fan)
+        if len(outer) >= 6:
+            pyglet.graphics.draw(
+                len(outer) // 2,
+                pyglet.gl.GL_TRIANGLE_FAN,
+                ("v2f", outer),
+                ("c3B", list(config.COLOR_TRACK) * (len(outer) // 2)),
+            )
 
-        # Borders
-        pygame.draw.lines(
-            screen, config.COLOR_TRACK_BORDER, True, outer_screen_points, 3
-        )
-        pygame.draw.lines(
-            screen, config.COLOR_TRACK_BORDER, True, inner_screen_points, 3
-        )
+        # Inner cut-out (draw background over inner to simulate hole)
+        if len(inner) >= 6:
+            pyglet.graphics.draw(
+                len(inner) // 2,
+                pyglet.gl.GL_TRIANGLE_FAN,
+                ("v2f", inner),
+                ("c3B", list(config.COLOR_BACKGROUND) * (len(inner) // 2)),
+            )
+
+        # Borders as line loops
+        if len(outer) >= 6:
+            pyglet.graphics.draw(
+                len(outer) // 2,
+                pyglet.gl.GL_LINE_LOOP,
+                ("v2f", outer),
+                ("c3B", list(config.COLOR_TRACK_BORDER) * (len(outer) // 2)),
+            )
+        if len(inner) >= 6:
+            pyglet.graphics.draw(
+                len(inner) // 2,
+                pyglet.gl.GL_LINE_LOOP,
+                ("v2f", inner),
+                ("c3B", list(config.COLOR_TRACK_BORDER) * (len(inner) // 2)),
+            )
 
         # Dashed center line
         center_points = []
         for i in range(len(self.outer_points)):
             ox, oy = self.outer_points[i]
             ix, iy = self.inner_points[i]
-            center_points.append(((ox + ix) / 2 - camera_x, (oy + iy) / 2 - camera_y))
-        for i in range(0, len(center_points), 4):
-            if i + 1 < len(center_points):
-                pygame.draw.line(
-                    screen, (255, 255, 255), center_points[i], center_points[i + 1], 2
-                )
+            center_points.append((ox + ix) / 2 - camera_x)
+            center_points.append((oy + iy) / 2 - camera_y)
 
-        # Checkpoints
+        # draw small segments to simulate dashes
+        for i in range(0, len(center_points) - 2, 8):
+            x1, y1 = center_points[i], center_points[i + 1]
+            x2, y2 = center_points[i + 2], center_points[i + 3]
+            pyglet.graphics.draw(
+                2,
+                pyglet.gl.GL_LINES,
+                ("v2f", [x1, y1, x2, y2]),
+                ("c3B", [255, 255, 255, 255, 255, 255]),
+            )
+
+        # Checkpoints as translucent circles
         for cx, cy in self.checkpoint_points:
             sx = int(cx - camera_x)
             sy = int(cy - camera_y)
-            pygame.draw.circle(
-                screen,
-                config.COLOR_CHECKPOINT,
-                (sx, sy),
+            circle = pyglet.shapes.Circle(
+                sx,
+                sy,
                 config.CHECKPOINT_SIZE // 2,
-                5,
+                color=config.COLOR_CHECKPOINT,
+                batch=batch,
             )
+            try:
+                circle.opacity = 80
+            except Exception:
+                pass
 
     def is_on_track(self, x, y):
         """Check if a world point (x,y) is on the drivable band of the ellipse."""

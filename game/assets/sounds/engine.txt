@@ -1,2 +1,0 @@
-# This is a placeholder for engine sound.
-# Replace this file with actual engine.wav or engine.ogg audio file.

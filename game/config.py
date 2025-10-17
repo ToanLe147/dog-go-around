@@ -2,58 +2,42 @@
 
 import os
 
-
 # Display settings
-WINDOW_TITLE = "Dog Go Around"
-WINDOW_WIDTH = 1920
-WINDOW_HEIGHT = 1080
-WINDOW_FULLSCREEN = False
-WINDOW_BORDERLESS = False
-FOV = 90
-FPS_CAP = 60
+WINDOW_TITLE = "Dog Go Around - Racing Game"
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
+FPS = 60
+FULLSCREEN = os.environ.get("FULLSCREEN", "0") == "1"
 
-# Graphics settings
-ENABLE_SHADOWS = True
-ENABLE_ANTIALIASING = True
-RENDER_DISTANCE = 1000
-
-# Physics settings
-GRAVITY = -20.0
-MAX_SPEED = 50.0
-ACCELERATION = 15.0
-BRAKE_FORCE = 30.0
-TURN_SPEED = 120.0
-DRIFT_FACTOR = 0.8
+# Game settings
+MAX_SPEED = 300  # pixels per second
+ACCELERATION = 150
 FRICTION = 0.95
-AIR_RESISTANCE = 0.98
-BOOST_MULTIPLIER = 2.0
-BOOST_DURATION = 2.0
+TURN_SPEED = 200  # degrees per second
+DRIFT_FACTOR = 0.92
 
-# Race settings
-LAP_COUNT = 3
-COUNTDOWN_TIME = 3
-CHECKPOINT_RADIUS = 5.0
-RESPAWN_COOLDOWN = 2.0
+# Track settings
+TRACK_WIDTH = 100
+CHECKPOINT_SIZE = 80
+
+# Physics
+COLLISION_SLOWDOWN = 0.5
 
 # Network settings
-DEFAULT_SERVER_HOST = os.environ.get("DOG_SERVER_HOST", "0.0.0.0")
-DEFAULT_SERVER_PORT = int(os.environ.get("DOG_SERVER_PORT", 7777))
-TICKRATE = int(os.environ.get("DOG_TICKRATE", 60))
-SNAPSHOT_RATE = int(os.environ.get("DOG_SNAPSHOT_RATE", 30))
-MAX_PLAYERS = 8
-INTERPOLATION_DELAY = 0.1
-PREDICTION_ENABLED = True
-
-# Input settings
-DEADZONE = 0.1
+DEFAULT_SERVER_HOST = "127.0.0.1"
+DEFAULT_SERVER_PORT = 7777
+NETWORK_UPDATE_RATE = 30  # updates per second
 
 # Audio settings
-MASTER_VOLUME = 1.0
 MUSIC_VOLUME = 0.7
 SFX_VOLUME = 0.8
 
-# Debug settings
-DEBUG_MODE = False
-SHOW_FPS = True
-SHOW_PHYSICS_DEBUG = False
-SHOW_CHECKPOINT_DEBUG = False
+# Colors (RGB)
+COLOR_BACKGROUND = (34, 139, 34)  # Forest green
+COLOR_TRACK = (64, 64, 64)  # Dark gray
+COLOR_TRACK_BORDER = (255, 255, 255)  # White
+COLOR_PLAYER = (0, 0, 255)  # Blue
+COLOR_OPPONENT = (255, 0, 0)  # Red
+COLOR_CHECKPOINT = (255, 255, 0)  # Yellow
+COLOR_TEXT = (255, 255, 255)  # White
+COLOR_UI_BG = (0, 0, 0, 180)  # Semi-transparent black

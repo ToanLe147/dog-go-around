@@ -1,148 +1,99 @@
-"""Player vehicle entity with physics."""
+"""Car entity with simple 2D physics for Pygame."""
 
-from ursina import *
+import math
+import pygame
 from game import config
-from game.core.physics import Physics
-from game.utils.input_map import InputMap
 
 
 class Car:
-    """Player vehicle with movement, collision, and effects."""
+    """Represents a car in the game."""
 
-    def __init__(self, position=Vec3(0, 1, 0), rotation=Vec3(0, 0, 0), is_remote=False):
+    def __init__(self, x, y, color, is_player=False):
         """Initialize the car."""
-        self.is_remote = is_remote
-
-        # Create car entity
-        self.entity = Entity(
-            model="cube",
-            color=color.rgb(0, 100, 255),
-            scale=(2, 1, 4),
-            position=position,
-            rotation=rotation,
-            collider="box",
-        )
-
-        # Physics component
-        self.physics = Physics(self.entity)
-
-        # Car properties
+        self.x = float(x)
+        self.y = float(y)
+        self.angle = 0.0  # degrees
         self.speed = 0.0
-        self.max_speed = config.MAX_SPEED
-        self.boost_active = False
-        self.boost_timer = 0.0
+        self.color = color
+        self.is_player = is_player
 
-        # Input handling (only for local player)
-        if not is_remote:
-            self.input_map = InputMap()
-        else:
-            self.input_map = None
+        # Car dimensions (pixels)
+        self.width = 30
+        self.height = 50
 
-        # Effects
-        self.setup_effects()
+        # Velocity components (pixels/sec)
+        self.vx = 0.0
+        self.vy = 0.0
 
-    def setup_effects(self):
-        """Set up visual effects."""
-        # Exhaust particles (placeholder)
-        self.exhaust = Entity(
-            parent=self.entity,
-            model="sphere",
-            scale=0.3,
-            position=(0, -0.3, -2),
-            color=color.smoke,
-            visible=False,
-        )
+    def update(self, dt, keys, track):
+        """Update car physics and position."""
+        if not self.is_player:
+            return
 
-        # Boost trail
-        self.boost_trail = Entity(
-            parent=self.entity,
-            model="quad",
-            scale=(1, 0.1, 3),
-            position=(0, -0.4, -2),
-            color=color.orange,
-            visible=False,
-        )
+        # Input handling
+        accelerating = keys[pygame.K_w] or keys[pygame.K_UP]
+        braking = keys[pygame.K_s] or keys[pygame.K_DOWN]
+        turning_left = keys[pygame.K_a] or keys[pygame.K_LEFT]
+        turning_right = keys[pygame.K_d] or keys[pygame.K_RIGHT]
 
-    def update(self):
-        """Update car state."""
-        if self.is_remote:
-            return  # Remote cars are updated by network sync
+        # Apply acceleration / brake
+        if accelerating:
+            self.speed += config.ACCELERATION * dt
+        elif braking:
+            self.speed -= config.ACCELERATION * 0.5 * dt
 
-        # Get input
-        throttle = 0.0
-        steer = 0.0
-        brake = False
-        handbrake = False
-        boost = False
+        # Friction
+        self.speed *= config.FRICTION
 
-        if self.input_map:
-            if held_keys["w"] or held_keys["up arrow"]:
-                throttle = 1.0
-            if held_keys["s"] or held_keys["down arrow"]:
-                throttle = -1.0
-                brake = True
-            if held_keys["a"] or held_keys["left arrow"]:
-                steer = -1.0
-            if held_keys["d"] or held_keys["right arrow"]:
-                steer = 1.0
-            if held_keys["space"]:
-                handbrake = True
-            if held_keys["left shift"]:
-                boost = True
+        # Clamp
+        self.speed = max(-config.MAX_SPEED * 0.5, min(config.MAX_SPEED, self.speed))
 
-            # Reset car
-            if held_keys["r"]:
-                self.reset()
+        # Turning (stronger when faster)
+        if abs(self.speed) > 10:
+            turn = config.TURN_SPEED * dt * (abs(self.speed) / config.MAX_SPEED)
+            if turning_left:
+                self.angle -= turn
+            if turning_right:
+                self.angle += turn
 
-        # Apply physics
-        self.physics.apply_input(throttle, steer, brake, handbrake, boost)
-        self.physics.update()
+        # Velocity from angle
+        ang = math.radians(self.angle)
+        self.vx = math.sin(ang) * self.speed
+        self.vy = -math.cos(ang) * self.speed
 
-        # Update speed
-        self.speed = self.physics.get_speed()
+        # Integrate position
+        self.x += self.vx * dt
+        self.y += self.vy * dt
 
-        # Update boost
-        if boost and self.boost_timer <= 0:
-            self.boost_active = True
-            self.boost_timer = config.BOOST_DURATION
-
-        if self.boost_timer > 0:
-            self.boost_timer -= time.dt
-            self.boost_trail.visible = True
-        else:
-            self.boost_active = False
-            self.boost_trail.visible = False
-
-        # Update effects
-        self.exhaust.visible = throttle > 0
-
-    def reset(self):
-        """Reset car to spawn position."""
-        self.entity.position = Vec3(0, 1, 0)
-        self.entity.rotation = Vec3(0, 0, 0)
-        self.physics.reset()
+    def reset(self, x, y):
+        """Reset car to starting position."""
+        self.x = float(x)
+        self.y = float(y)
+        self.angle = 0.0
         self.speed = 0.0
+        self.vx = 0.0
+        self.vy = 0.0
 
-    def get_position(self):
-        """Get car position."""
-        return self.entity.position
+    def render(self, screen, camera_x, camera_y):
+        """Render the car."""
+        screen_x = int(self.x - camera_x)
+        screen_y = int(self.y - camera_y)
 
-    def get_rotation(self):
-        """Get car rotation."""
-        return self.entity.rotation
+        # Car surface
+        surf = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        pygame.draw.rect(surf, self.color, (0, 0, self.width, self.height))
+        pygame.draw.rect(surf, (255, 255, 255), (0, 0, self.width, self.height), 2)
+        # Direction arrow
+        pygame.draw.polygon(
+            surf,
+            (255, 255, 0),
+            [
+                (self.width // 2, 5),
+                (self.width // 2 - 8, 20),
+                (self.width // 2 + 8, 20),
+            ],
+        )
 
-    def get_velocity(self):
-        """Get car velocity."""
-        return self.physics.velocity
-
-    def set_position(self, position):
-        """Set car position (for network sync)."""
-        self.entity.position = position
-
-    def set_rotation(self, rotation):
-        """Set car rotation (for network sync)."""
-        self.entity.rotation = rotation
-
-    def set_velocity(self, velocity):
-        """Set car velocity (for network sync)."""
-        self.physics.velocity = velocity
+        rotated = pygame.transform.rotate(surf, -self.angle)
+        rect = rotated.get_rect(center=(screen_x, screen_y))
+        screen.blit(rotated, rect)

@@ -1,27 +1,18 @@
 [project]
 name = "dog-go-around"
 version = "0.1.0"
-description = "A fast-paced multiplayer racing game built with the Ursina engine"
+description = "A multiplayer racing game"
 readme = "README.md"
-requires-python = ">=3.12"
-authors = [
-    { name = "ToanLe147", email = "" }
-]
-keywords = ["game", "racing", "multiplayer", "ursina", "3d"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: End Users/Desktop",
-    "Topic :: Games/Entertainment :: Racing",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-]
+requires-python = ">=3.10"
 dependencies = [
-    "ursina>=8.1.1",
+    "pygame>=2.5.0",
     "websockets>=12.0",
     "msgpack>=1.0.0",
     "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = [
     "pytest>=8.4.2",
 ]
 
@@ -32,29 +23,10 @@ Issues = "https://github.com/ToanLe147/dog-go-around/issues"
 
 [project.scripts]
 dog-go-around = "run:main"
-dog-server = "game.net.server:main"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
-testpaths = ["game/tests"]
+testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = ["-v", "--tb=short"]
-
-[tool.ruff]
-line-length = 100
-target-version = "py310"
-
-[tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP"]
-ignore = ["E501"]
-
-[tool.mypy]
-python_version = "3.10"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = false

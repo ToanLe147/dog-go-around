@@ -1,41 +1,38 @@
-"""Main entry point for Dog Go Around racing game."""
+"""Entry point for Dog Go Around racing game."""
 
 import argparse
-import sys
-from game.core.app import GameApp
+from game.game import Game
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Dog Go Around - Multiplayer Racing Game"
+    """Parse arguments and start the game."""
+    parser = argparse.ArgumentParser(description="Dog Go Around - Racing Game")
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Run in offline mode (no multiplayer)",
+    )
+    parser.add_argument(
+        "--name",
+        type=str,
+        default="Player1",
+        help="Player name",
     )
     parser.add_argument(
         "--server",
         type=str,
         default="127.0.0.1:7777",
-        help="Server address in format host:port",
+        help="Server address (host:port)",
     )
-    parser.add_argument("--name", type=str, default="Player1", help="Player name")
-    parser.add_argument("--offline", action="store_true", help="Run in offline mode")
-
+    
     args = parser.parse_args()
-
-    # Parse server address
-    if ":" in args.server:
-        host, port = args.server.split(":")
-        port = int(port)
-    else:
-        host = args.server
-        port = 7777
-
-    # Start game
-    app = GameApp(
-        player_name=args.name,
-        server_host=host,
-        server_port=port,
+    
+    # Start the game
+    game = Game(
         offline_mode=args.offline,
+        player_name=args.name
     )
-    app.run()
+    game.run()
 
 
 if __name__ == "__main__":

@@ -1,2 +1,0 @@
-# This is a placeholder for boost sound.
-# Replace this file with actual boost.wav or boost.ogg audio file.

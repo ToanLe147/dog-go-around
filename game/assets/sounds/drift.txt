@@ -1,2 +1,0 @@
-# This is a placeholder for drift sound.
-# Replace this file with actual drift.wav or drift.ogg audio file.

@@ -1,274 +1,96 @@
-# 🏎️ Dog Go Around
+# Dog Go Around — Pygame Edition
 
-> A fast-paced multiplayer racing game built with the Ursina engine
+A simple top‑down racing prototype built with Pygame. It features smooth car controls, an oval track with checkpoints, a basic menu, and a lightweight HUD.
 
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Made with Ursina](https://img.shields.io/badge/made%20with-Ursina-orange.svg)](https://www.ursinaengine.org/)
+## Features
 
----
+- Top‑down racing with velocity/angle based car physics
+- WASD/Arrow controls and a keyboard/mouse‑driven main menu
+- Oval track with inner/outer borders, dashed center line, and checkpoint markers
+- HUD showing speed, lap placeholder, and control hints
+- Pause overlay (ESC) with resume and quit‑to‑menu
+- 60 FPS target
 
-## ✨ Features
+## Quick start
 
-- 🎮 **Multiplayer Racing** - Compete with friends in real-time
-- 🌐 **Client-Server Architecture** - Authoritative server with snapshot interpolation
-- 🏁 **Race System** - Checkpoints, laps, and finish line detection
-- 🎯 **Physics Engine** - Realistic acceleration, steering, friction, and drift
-- 📷 **Dynamic Camera** - Multiple camera modes with smooth following
-- 🎨 **Interactive UI** - Lobby system, menus, and results screens
-- ⚡ **Power-ups** - Boost mechanics for competitive gameplay
-- 💬 **Chat System** - In-game communication
-
----
-
-## 📦 Installation
-
-### Prerequisites
-
-- **Python 3.10+**
-- **pip** package manager
-
-### Setup
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/dog-go-around.git
-   cd dog-go-around
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Required packages**
-
-   ```
-   ursina
-   websockets
-   msgpack
-   numpy
-   ```
-
----
-
-## 🚀 Getting Started
-
-### Starting the Server
+Install dependencies and run the game.
 
 ```bash
-python -m game.net.server --host 0.0.0.0 --port 7777
+# Using uv (recommended)
+uv sync
+uv run run.py --offline
+
+# Or using pip
+pip install -r requirements.txt
+python run.py --offline
 ```
 
-### Starting the Client
+## Controls
 
-```bash
-python run.py --server 127.0.0.1:7777 --name Player1
-```
+- Menu: Up/Down or Mouse to navigate, Enter/Space/Click to select
+- Race: W/Up accelerate, S/Down brake, A/Left and D/Right steer, ESC pause
+- Pause: ESC resume, Q back to menu
 
-### Local Testing
+## Project structure
 
-1. Open a terminal and start the server
-2. Open additional terminals for each client
-3. Connect multiple clients to test multiplayer
-
----
-
-## 📁 Project Structure
-
-```
+```text
 dog-go-around/
-├── run.py                      # Main entry point
-├── requirements.txt            # Python dependencies
-└── game/
-    ├── config.py              # Game configuration
-    ├── core/                  # Core game logic
-    │   ├── app.py            # Game application bootstrap
-    │   ├── world.py          # World management
-    │   ├── track.py          # Track system
-    │   ├── car.py            # Player vehicle
-    │   ├── camera_rig.py     # Camera controller
-    │   ├── hud.py            # Heads-up display
-    │   ├── physics.py        # Physics engine
-    │   ├── race.py           # Race management
-    │   ├── checkpoints.py    # Checkpoint system
-    │   └── powerups.py       # Power-up system
-    ├── ui/                    # User interface
-    │   ├── menu.py           # Main menu
-    │   ├── lobby.py          # Multiplayer lobby
-    │   ├── pause_menu.py     # Pause screen
-    │   └── results.py        # Race results
-    ├── net/                   # Networking
-    │   ├── server.py         # Game server
-    │   ├── client.py         # Game client
-    │   ├── messages.py       # Network messages
-    │   └── state_sync.py     # State synchronization
-    ├── assets/                # Game assets
-    │   ├── textures/         # Texture files
-    │   ├── models/           # 3D models
-    │   └── sounds/           # Audio files
-    ├── utils/                 # Utility modules
-    │   ├── input_map.py      # Input handling
-    │   ├── timing.py         # Time utilities
-    │   ├── serialization.py  # Data serialization
-    │   └── mathx.py          # Math helpers
-    └── tests/                 # Unit tests
-        ├── test_net.py       # Network tests
-        └── test_physics.py   # Physics tests
+├── game/
+│   ├── config.py          # Settings for window, physics, colors
+│   ├── game.py            # Main loop and state machine
+│   ├── core/
+│   │   ├── car.py         # Car physics and rendering
+│   │   └── track.py       # Track geometry and rendering
+│   └── ui/
+│       ├── hud.py         # HUD overlay
+│       └── menu.py        # Main menu
+├── run.py                 # CLI entry point
+├── pyproject.toml         # Project metadata and dependencies
+└── README.md
 ```
 
----
+## Configuration
 
-## 🏗️ Architecture
+Tweak `game/config.py` values.
 
-### Core Classes
+```python
+# Display
+WINDOW_TITLE = "Dog Go Around - Racing Game"
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
+FPS = 60
+FULLSCREEN = False
 
-| Class | Description |
-|-------|-------------|
-| **GameApp** | Bootstraps Ursina engine, loads scenes, manages lifecycle |
-| **RaceManager** | Controls race flow (countdown, laps, finish, results) |
-| **Car** | Player vehicle entity with movement and collision |
-| **Physics** | Handles acceleration, steering, friction, and drift |
-| **Track** | Track mesh, boundaries, spawn points, lap management |
-| **Checkpoints** | Waypoint validation and wrong-way detection |
-| **HUD** | Display speedometer, lap counter, position, timer |
-| **CameraRig** | Multiple camera modes with smooth following |
-| **NetworkServer** | Authoritative game state and lobby management |
-| **NetworkClient** | Input handling and state interpolation |
-| **Messages** | Network message dataclasses |
-| **UI Components** | Lobby, menu, and results interfaces |
-| **InputMap** | Key binding configuration |
+# Physics
+MAX_SPEED = 300
+ACCELERATION = 150
+FRICTION = 0.95
+TURN_SPEED = 200
 
----
+# Track
+TRACK_WIDTH = 100
+CHECKPOINT_SIZE = 80
 
-## 🎮 Controls
-
-| Action | Keys |
-|--------|------|
-| **Throttle** | `W` / `↑` |
-| **Brake/Reverse** | `S` / `↓` |
-| **Steer Left** | `A` / `←` |
-| **Steer Right** | `D` / `→` |
-| **Handbrake** | `Space` |
-| **Boost** | `Left Shift` |
-| **Reset** | `R` |
-| **Change Camera** | `C` |
-| **Chat** | `T` |
-| **Pause/Menu** | `Esc` |
-| **Debug/FPS** | `F1` |
-
----
-
-## 🎯 How to Play
-
-1. **🌐 Connect** - Start the server and launch client with server address
-2. **🎨 Lobby** - Select a track and ready up
-3. **🏁 Race** - Pass checkpoints in order to complete laps
-4. **⚡ Strategy** - Use boost on straights, handbrake for tight corners
-5. **🏆 Win** - First player to complete all laps wins!
-
----
-
-## 🌐 Networking
-
-### Architecture
-
-- **Client → Server**: Inputs sent at fixed rate
-- **Server → Clients**: State snapshots broadcasted
-- **Client-side**: Interpolation and prediction for smooth gameplay
-- **Default Port**: 7777/UDP (WebSocket optional)
-
-### Snapshot Contents
-
-- Car transforms and velocities
-- Race metadata (lap, position, time)
-- Checkpoint states
-
----
-
-## ⚙️ Configuration
-
-### Config File
-
-Edit `game/config.py` for:
-
-- Resolution and FOV
-- Physics constants
-- Network tick rates
-- Game rules
-
-### Environment Variables
-
-```bash
-export DOG_SERVER_HOST=0.0.0.0
-export DOG_SERVER_PORT=7777
-export DOG_TICKRATE=60
-export DOG_SNAPSHOT_RATE=30
+# Colors (RGB)
+COLOR_BACKGROUND = (34, 139, 34)
+COLOR_TRACK = (64, 64, 64)
+COLOR_PLAYER = (0, 0, 255)
+COLOR_TEXT = (255, 255, 255)
 ```
 
----
+## Tips and customization
 
-## 🤝 Contributing
+- Add an opponent: create another `Car` in `game/game.py` and append it to `self.cars`.
+- Change track size: adjust `radius_x`/`radius_y` in `game/core/track.py`.
+- Tune handling: edit physics values in `game/config.py`.
 
-We welcome contributions! Here's how to help:
+## Limitations
 
-1. **Fork** the repository
-2. **Create** a feature branch
-3. **Write** tests for new features
-4. **Run** linters and tests:
+- Single local player
+- No AI yet
+- Networking not implemented
+- Single track
 
-   ```bash
-   pytest
-   mypy .
-   ruff check .
-   ```
+## License
 
-5. **Keep** assets under `assets/` with relative paths
-6. **Prefer** small, testable modules
-
----
-
-## 🐛 Troubleshooting
-
-### Cannot Connect
-
-- ✅ Verify host and port are correct
-- ✅ Check firewall settings
-- ✅ Ensure server and client versions match
-
-### Rubber-banding / Lag
-
-- ✅ Lower client graphics settings
-- ✅ Adjust tick/snapshot rates in config
-- ✅ Check network latency
-
-### Physics Instability
-
-- ✅ Cap FPS to 60
-- ✅ Adjust `dt` clamp in Physics class
-- ✅ Reduce physics substeps if needed
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- Built with [Ursina Engine](https://www.ursinaengine.org/)
-- Inspired by classic racing games
-
----
-
-<div align="center">
-
-**Made with ❤️ and Python**
-
-[Report Bug](https://github.com/yourusername/dog-go-around/issues) · [Request Feature](https://github.com/yourusername/dog-go-around/issues)
-
-</div>
+MIT

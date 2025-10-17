@@ -53,8 +53,37 @@ class Menu:
         return None
 
     def render(self, batch):
-        # Title
-        self.title.draw()
+        drawables = []
+        # Subtle overlay to help menu pop over background (draw first)
+        try:
+            overlay = pyglet.shapes.Rectangle(
+                0,
+                0,
+                config.WINDOW_WIDTH,
+                config.WINDOW_HEIGHT,
+                color=(20, 20, 40),
+                batch=batch,
+            )
+            try:
+                overlay.opacity = 180
+            except Exception:
+                pass
+            drawables.append(overlay)
+        except Exception:
+            overlay = None
+
+        # Title (added after overlay)
+        title = pyglet.text.Label(
+            "DOG GO AROUND",
+            font_size=48,
+            x=config.WINDOW_WIDTH // 2,
+            y=config.WINDOW_HEIGHT - 150,
+            anchor_x="center",
+            anchor_y="center",
+            color=(255, 200, 0, 255),
+            batch=batch,
+        )
+        drawables.append(title)
         # Options (simple rectangles + labels)
         for i, option in enumerate(self.options):
             option_y = config.WINDOW_HEIGHT // 2 + i * 80
@@ -63,7 +92,7 @@ class Menu:
             width = 300
             height = 60
             # Highlight if selected
-            bg = (60, 60, 100) if i == self.selected_option else (40, 40, 60)
+            bg = (90, 90, 140) if i == self.selected_option else (50, 50, 80)
             rect = pyglet.shapes.Rectangle(x, y, width, height, color=bg, batch=batch)
             label = pyglet.text.Label(
                 option,
@@ -75,7 +104,11 @@ class Menu:
                 color=(
                     (255, 255, 255, 255)
                     if i == self.selected_option
-                    else (180, 180, 180, 255)
+                    else (210, 210, 210, 255)
                 ),
                 batch=batch,
             )
+            drawables.append(rect)
+            drawables.append(label)
+
+        return drawables

@@ -3,7 +3,12 @@
 import sys
 import pyglet
 from pyglet.window import key, mouse
+
 from game import config
+from game.core.car import Car
+from game.core.track import Track
+from game.ui.menu import Menu
+from game.ui.hud import HUD
 
 
 class Game:
@@ -26,12 +31,6 @@ class Game:
         self.state = "menu"  # menu, racing, paused, results
         self.offline_mode = offline_mode
         self.player_name = player_name
-
-        # Initialize subsystems
-        from game.core.car import Car
-        from game.core.track import Track
-        from game.ui.menu import Menu
-        from game.ui.hud import HUD
 
         self.track = Track()
         self.player_car = Car(100, 100, config.COLOR_PLAYER, is_player=True)
@@ -104,58 +103,109 @@ class Game:
     def on_draw(self):
         self.window.clear()
         batch = pyglet.graphics.Batch()
+        drawables = []
+
+        # Solid background
+        bg = pyglet.shapes.Rectangle(
+            0,
+            0,
+            config.WINDOW_WIDTH,
+            config.WINDOW_HEIGHT,
+            color=config.COLOR_BACKGROUND,
+            batch=batch,
+        )
+        drawables.append(bg)
 
         if self.state == "menu":
-            # Background
-            try:
-                bg = pyglet.shapes.Rectangle(
-                    0,
-                    0,
-                    config.WINDOW_WIDTH,
-                    config.WINDOW_HEIGHT,
-                    color=config.COLOR_BACKGROUND,
-                    batch=batch,
-                )
-            except Exception:
-                pass
-            self.menu.render(batch)
+            # Render menu elements on top of background
+            drawables.extend(self.menu.render(batch))
         elif self.state in ["racing", "paused"]:
-            # Background
-            try:
-                bg = pyglet.shapes.Rectangle(
-                    0,
-                    0,
-                    config.WINDOW_WIDTH,
-                    config.WINDOW_HEIGHT,
-                    color=config.COLOR_BACKGROUND,
-                    batch=batch,
-                )
-            except Exception:
-                pass
-            self.track.render(batch, self.camera_x, self.camera_y)
-            for car in self.cars:
-                car.render(batch, self.camera_x, self.camera_y)
-            self.hud.render()
+            # World: track and player car
+            drawables.extend(self.track.render(batch, self.camera_x, self.camera_y))
+            car_shape = self.player_car.render(batch, self.camera_x, self.camera_y)
+            if car_shape is not None:
+                drawables.append(car_shape)
+
+            # Pause overlay if paused
             if self.state == "paused":
-                self.render_pause_overlay()
+                try:
+                    overlay = pyglet.shapes.Rectangle(
+                        0,
+                        0,
+                        config.WINDOW_WIDTH,
+                        config.WINDOW_HEIGHT,
+                        color=(0, 0, 0),
+                        batch=batch,
+                    )
+                    try:
+                        overlay.opacity = 150
+                    except Exception:
+                        pass
+                    drawables.append(overlay)
+                    paused_lbl = pyglet.text.Label(
+                        "PAUSED",
+                        font_size=48,
+                        x=config.WINDOW_WIDTH // 2,
+                        y=config.WINDOW_HEIGHT // 2,
+                        anchor_x="center",
+                        anchor_y="center",
+                        color=(255, 255, 255, 255),
+                        batch=batch,
+                    )
+                    drawables.append(paused_lbl)
+                except Exception:
+                    pass
+
+        # Debug state label (always visible)
+        dbg = pyglet.text.Label(
+            f"state: {self.state}",
+            font_size=12,
+            x=8,
+            y=config.WINDOW_HEIGHT - 14,
+            anchor_x="left",
+            anchor_y="top",
+            color=(255, 255, 255, 200),
+            batch=batch,
+        )
+        drawables.append(dbg)
+
+        # Draw all batched objects
         batch.draw()
+
+        # HUD draws immediate (not batched) so render after batch
+        if self.state in ["racing", "paused"]:
+            # Optionally attach HUD to batch so it's also retained
+            drawables.extend(self.hud.render(batch))
 
     def start_race(self):
         """Start a new race."""
         self.state = "racing"
         self.player_car.reset(100, 100)
 
-    def render_pause_overlay(self):
-        """Render pause menu overlay."""
-        # Simple pause overlay text using pyglet labels
-        label = pyglet.text.Label(
-            "PAUSED",
-            font_name=None,
-            font_size=48,
-            x=config.WINDOW_WIDTH // 2,
-            y=config.WINDOW_HEIGHT // 2,
-            anchor_x="center",
-            anchor_y="center",
-            color=(255, 255, 255, 255),
-        )
-        label.draw()
+    def render_pause_overlay(self, batch):
+        """Render pause menu overlay into the provided batch."""
+        try:
+            overlay = pyglet.shapes.Rectangle(
+                0,
+                0,
+                config.WINDOW_WIDTH,
+                config.WINDOW_HEIGHT,
+                color=(0, 0, 0),
+                batch=batch,
+            )
+            try:
+                overlay.opacity = 150
+            except Exception:
+                pass
+            pyglet.text.Label(
+                "PAUSED",
+                font_size=48,
+                x=config.WINDOW_WIDTH // 2,
+                y=config.WINDOW_HEIGHT // 2,
+                anchor_x="center",
+                anchor_y="center",
+                color=(255, 255, 255, 255),
+                batch=batch,
+            )
+        except Exception:
+            pass

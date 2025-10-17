@@ -7,6 +7,7 @@ drivable band of the track.
 
 import math
 import pyglet
+from pyglet import shapes
 from game import config
 
 
@@ -55,67 +56,62 @@ class Track:
                 self.checkpoint_points.append((checkpoint_x, checkpoint_y))
 
     def render(self, batch, camera_x, camera_y):
-        """Render the track using pyglet shapes and lines into the given batch."""
-        # Build vertex lists for polygons (outer and inner)
-        outer = []
-        for x, y in self.outer_points:
-            outer.extend([x - camera_x, y - camera_y])
-        inner = []
-        for x, y in self.inner_points:
-            inner.extend([x - camera_x, y - camera_y])
+        """Render the track using pyglet shapes and lines into the given batch.
+        Returns a list of created shape objects so the caller can hold references.
+        """
+        drawables = []
+        # Build point lists for shapes.Polygon
+        outer_pts = [(x - camera_x, y - camera_y) for x, y in self.outer_points]
+        inner_pts = [(x - camera_x, y - camera_y) for x, y in self.inner_points]
 
-        # Filled outer polygon (approximation via triangle fan)
-        if len(outer) >= 6:
-            pyglet.graphics.draw(
-                len(outer) // 2,
-                pyglet.gl.GL_TRIANGLE_FAN,
-                ("v2f", outer),
-                ("c3B", list(config.COLOR_TRACK) * (len(outer) // 2)),
-            )
+        # Filled outer polygon
+        if len(outer_pts) >= 3:
+            try:
+                poly = shapes.Polygon(*outer_pts, color=config.COLOR_TRACK, batch=batch)
+                drawables.append(poly)
+            except TypeError:
+                # Pyglet may expect a list of tuples
+                poly = shapes.Polygon(*outer_pts, batch=batch)
+                poly.color = config.COLOR_TRACK
+                drawables.append(poly)
 
-        # Inner cut-out (draw background over inner to simulate hole)
-        if len(inner) >= 6:
-            pyglet.graphics.draw(
-                len(inner) // 2,
-                pyglet.gl.GL_TRIANGLE_FAN,
-                ("v2f", inner),
-                ("c3B", list(config.COLOR_BACKGROUND) * (len(inner) // 2)),
-            )
+        # Inner cut-out by drawing background-colored polygon
+        if len(inner_pts) >= 3:
+            try:
+                poly2 = shapes.Polygon(
+                    *inner_pts, color=config.COLOR_BACKGROUND, batch=batch
+                )
+                drawables.append(poly2)
+            except TypeError:
+                poly2 = shapes.Polygon(*inner_pts, batch=batch)
+                poly2.color = config.COLOR_BACKGROUND
+                drawables.append(poly2)
 
-        # Borders as line loops
-        if len(outer) >= 6:
-            pyglet.graphics.draw(
-                len(outer) // 2,
-                pyglet.gl.GL_LINE_LOOP,
-                ("v2f", outer),
-                ("c3B", list(config.COLOR_TRACK_BORDER) * (len(outer) // 2)),
-            )
-        if len(inner) >= 6:
-            pyglet.graphics.draw(
-                len(inner) // 2,
-                pyglet.gl.GL_LINE_LOOP,
-                ("v2f", inner),
-                ("c3B", list(config.COLOR_TRACK_BORDER) * (len(inner) // 2)),
-            )
+        # Borders
+        for pts in (outer_pts, inner_pts):
+            if len(pts) >= 2:
+                for i in range(len(pts)):
+                    x1, y1 = pts[i]
+                    x2, y2 = pts[(i + 1) % len(pts)]
+                    # Use positional args to support pyglet versions without 'width' kwarg
+                    line = shapes.Line(
+                        x1, y1, x2, y2, 2, config.COLOR_TRACK_BORDER, batch
+                    )
+                    drawables.append(line)
 
         # Dashed center line
-        center_points = []
+        centers = []
         for i in range(len(self.outer_points)):
             ox, oy = self.outer_points[i]
             ix, iy = self.inner_points[i]
-            center_points.append((ox + ix) / 2 - camera_x)
-            center_points.append((oy + iy) / 2 - camera_y)
-
-        # draw small segments to simulate dashes
-        for i in range(0, len(center_points) - 2, 8):
-            x1, y1 = center_points[i], center_points[i + 1]
-            x2, y2 = center_points[i + 2], center_points[i + 3]
-            pyglet.graphics.draw(
-                2,
-                pyglet.gl.GL_LINES,
-                ("v2f", [x1, y1, x2, y2]),
-                ("c3B", [255, 255, 255, 255, 255, 255]),
-            )
+            centers.append((ox + ix) / 2 - camera_x)
+            centers.append((oy + iy) / 2 - camera_y)
+        # draw short segments every few points
+        for i in range(0, len(centers) - 2, 8):
+            x1, y1 = centers[i], centers[i + 1]
+            x2, y2 = centers[i + 2], centers[i + 3]
+            line = shapes.Line(x1, y1, x2, y2, 2, (255, 255, 255), batch)
+            drawables.append(line)
 
         # Checkpoints as translucent circles
         for cx, cy in self.checkpoint_points:
@@ -132,6 +128,9 @@ class Track:
                 circle.opacity = 80
             except Exception:
                 pass
+            drawables.append(circle)
+
+        return drawables
 
     def is_on_track(self, x, y):
         """Check if a world point (x,y) is on the drivable band of the ellipse."""

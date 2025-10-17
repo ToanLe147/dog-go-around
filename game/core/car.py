@@ -2,6 +2,7 @@
 
 import math
 from game import config
+from pyglet import shapes
 
 
 class Car:
@@ -79,11 +80,7 @@ class Car:
         self.vy = 0.0
 
     def render(self, batch, camera_x, camera_y):
-        """Render the car using a rotated rectangle in pyglet."""
-        try:
-            from pyglet import shapes
-        except Exception:
-            return
+        """Render the car using a rotated rectangle in pyglet and return it."""
 
         screen_x = self.x - camera_x
         screen_y = self.y - camera_y
@@ -92,11 +89,6 @@ class Car:
             screen_x, screen_y, self.width, self.height, color=self.color, batch=batch
         )
         # rotate around center
-        try:
-            rect.anchor_position = (self.width / 2, self.height / 2)
-        except Exception:
-            pass
-        try:
-            rect.rotation = self.angle
-        except Exception:
-            pass
+        rect.anchor_position = (self.width / 2, self.height / 2)
+        rect.rotation = self.angle
+        return rect

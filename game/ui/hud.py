@@ -22,8 +22,11 @@ class HUD:
         """Update HUD stats."""
         self.speed = abs(player_car.speed)
 
-    def render(self):
-        """Render HUD elements using pyglet Labels."""
+    def render(self, batch=None):
+        """Render HUD elements using pyglet Labels.
+        If a batch is provided, attach labels to the batch; otherwise draw immediately.
+        Returns the list of created labels.
+        """
         labels = []
 
         labels.append(
@@ -35,6 +38,7 @@ class HUD:
                 anchor_x="left",
                 anchor_y="center",
                 color=(255, 255, 255, 255),
+                batch=batch,
             )
         )
 
@@ -47,6 +51,7 @@ class HUD:
                 anchor_x="left",
                 anchor_y="center",
                 color=(255, 255, 255, 255),
+                batch=batch,
             )
         )
 
@@ -59,6 +64,7 @@ class HUD:
                 anchor_x="left",
                 anchor_y="center",
                 color=(255, 255, 255, 255),
+                batch=batch,
             )
         )
 
@@ -80,9 +86,11 @@ class HUD:
                     anchor_x="left",
                     anchor_y="baseline",
                     color=(255, 255, 255, 200),
+                    batch=batch,
                 )
             )
             y_offset += 20
-
-        for lbl in labels:
-            lbl.draw()
+        if batch is None:
+            for lbl in labels:
+                lbl.draw()
+        return labels

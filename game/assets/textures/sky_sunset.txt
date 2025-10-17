@@ -1,2 +1,0 @@
-# This is a placeholder for the sky texture.
-# Replace this file with actual sky_sunset.png or sky_sunset.jpg texture file.

@@ -1,3 +1,0 @@
-# This is a placeholder for the car model.
-# Replace this file with actual car.obj or car.fbx 3D model file.
-# The game uses basic cubes by default, so this is optional.

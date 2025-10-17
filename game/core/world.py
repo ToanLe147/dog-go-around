@@ -29,7 +29,7 @@ class World:
         self.other_cars = {}
 
         # Sky
-        self.sky = Sky(texture="sky_sunset")
+        self.sky = Sky(texture="sky_sunset.png")
 
     def setup_lighting(self):
         """Set up scene lighting."""

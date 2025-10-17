@@ -16,7 +16,7 @@ class Track:
         self.ground = Entity(
             model="plane",
             scale=(100, 1, 100),
-            texture="grass",
+            texture="grass.png",
             collider="box",
             color=color.rgb(100, 200, 100),
         )
@@ -43,7 +43,7 @@ class Track:
             model="cube",
             scale=(80, 0.1, 40),
             position=(0, 0.05, 0),
-            texture="asphalt",
+            texture="asphalt.png",
             color=color.rgb(40, 40, 40),
             collider="box",
         )

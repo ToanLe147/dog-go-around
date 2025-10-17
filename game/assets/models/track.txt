@@ -1,3 +1,0 @@
-# This is a placeholder for the track model.
-# Replace this file with actual track.obj or track.fbx 3D model file.
-# The game generates a simple track procedurally, so this is optional.

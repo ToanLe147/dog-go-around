@@ -34,10 +34,6 @@ Issues = "https://github.com/ToanLe147/dog-go-around/issues"
 dog-go-around = "run:main"
 dog-server = "game.net.server:main"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [tool.pytest.ini_options]
 testpaths = ["game/tests"]
 python_files = ["test_*.py"]

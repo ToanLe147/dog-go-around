@@ -1,96 +1,97 @@
-# Dog Go Around — Pygame Edition
+# Dog Go Around — Pygame Framework
 
-A simple top‑down racing prototype built with Pygame. It features smooth car controls, an oval track with checkpoints, a basic menu, and a lightweight HUD.
+This repository contains a small, reusable Pygame framework for 2D games. It runs locally and can be published to the web using WebAssembly via pygbag.
 
-## Features
+What’s included:
 
-- Top‑down racing with velocity/angle based car physics
-- WASD/Arrow controls and a keyboard/mouse‑driven main menu
-- Oval track with inner/outer borders, dashed center line, and checkpoint markers
-- HUD showing speed, lap placeholder, and control hints
-- Pause overlay (ESC) with resume and quit‑to‑menu
-- 60 FPS target
+- Components: Button, Health Bar, Title, Slider
+- Sound Manager: play sounds based on events from components/scenes
+- Scene: container for visualization and logic
+- Scene Manager: manages scene switching and a shared state dict
+- Display Manager: toggles fullscreen and resolution from triggers
+- Assets folder: central place for images/audio (path exposed via `config`)
+
+Defaults (configurable):
+
+- Initial window size: 640 × 360
+- Game name/title/icon
+- Assets directory path via `src/framework/config.py`
+
+## Project layout
+
+```text
+assets/                    # put your images/audio here
+src/
+  dog_go_around/
+    __init__.py            # package root with version
+    __main__.py            # enables python -m dog_go_around
+    cli.py                 # main entry point
+    framework/
+      components/
+        button.py
+        health_bar.py
+        slider.py
+        title.py
+      config.py            # paths, window defaults, colors
+      display_manager.py   # resolution/fullscreen toggles
+      scene.py             # base Scene class
+      scene_manager.py     # manages current scene
+      sound_manager.py     # sound playback by key
+    scenes/
+      main_menu.py         # demo main menu scene
+      demo.py              # demo scene showcasing components
+tests/
+  test_sound_manager.py    # example pytest
+```
 
 ## Quick start
 
-Install dependencies and run the game.
+Install dependencies (Python 3.10+):
 
 ```bash
-# Using uv (recommended)
-uv sync
-uv run run.py --offline
-
-# Or using pip
 pip install -r requirements.txt
-python run.py --offline
 ```
 
-## Controls
+Run the demo:
 
-- Menu: Up/Down or Mouse to navigate, Enter/Space/Click to select
-- Race: W/Up accelerate, S/Down brake, A/Left and D/Right steer, ESC pause
-- Pause: ESC resume, Q back to menu
-
-## Project structure
-
-```text
-dog-go-around/
-├── game/
-│   ├── config.py          # Settings for window, physics, colors
-│   ├── game.py            # Main loop and state machine
-│   ├── core/
-│   │   ├── car.py         # Car physics and rendering
-│   │   └── track.py       # Track geometry and rendering
-│   └── ui/
-│       ├── hud.py         # HUD overlay
-│       └── menu.py        # Main menu
-├── run.py                 # CLI entry point
-├── pyproject.toml         # Project metadata and dependencies
-└── README.md
+```bash
+uv run dog-go-around
+# or
+python -m dog_go_around
 ```
 
-## Configuration
+Optional flags:
 
-Tweak `game/config.py` values.
+```bash
+uv run dog-go-around --fullscreen
+```
+
+You can also use the packaged console script if installed via `pip`:
+
+```bash
+# After pip install -e .
+dog-go-around
+```
+
+## Using the framework
+
+- Create your own scenes under `src/dog_go_around/scenes/` by subclassing `Scene`.
+- Add UI components from `dog_go_around.framework.components` to your scenes.
+- Use `DisplayManager` to change resolution/fullscreen in response to events.
+- Load sounds via `SoundManager` (place files under `assets/`).
+
+Access the assets path and default settings via:
 
 ```python
-# Display
-WINDOW_TITLE = "Dog Go Around - Racing Game"
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
-FPS = 60
-FULLSCREEN = False
-
-# Physics
-MAX_SPEED = 300
-ACCELERATION = 150
-FRICTION = 0.95
-TURN_SPEED = 200
-
-# Track
-TRACK_WIDTH = 100
-CHECKPOINT_SIZE = 80
-
-# Colors (RGB)
-COLOR_BACKGROUND = (34, 139, 34)
-COLOR_TRACK = (64, 64, 64)
-COLOR_PLAYER = (0, 0, 255)
-COLOR_TEXT = (255, 255, 255)
+from dog_go_around.framework import config
+print(config.ASSETS_DIR)
+print(config.INITIAL_WINDOW_SIZE)
 ```
 
-## Tips and customization
+## Web (pygbag)
 
-- Add an opponent: create another `Car` in `game/game.py` and append it to `self.cars`.
-- Change track size: adjust `radius_x`/`radius_y` in `game/core/track.py`.
-- Tune handling: edit physics values in `game/config.py`.
-
-## Limitations
-
-- Single local player
-- No AI yet
-- Networking not implemented
-- Single track
+This codebase is compatible with pygbag (listed in `requirements.txt`). Publishing to the web typically involves preparing a minimal entry file and running pygbag; consult pygbag docs for packaging steps.
 
 ## License
 
-MIT
+MIT (see LICENSE if present) — assets you add may have their own licenses.

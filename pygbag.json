@@ -1,0 +1,9 @@
+{
+    "package": "dog_go_around",
+    "title": "Dog Go Around - Pygame Framework",
+    "description": "A reusable Pygame framework for 2D games",
+    "author": "ToanLe147",
+    "width": 640,
+    "height": 360,
+    "template": "index.html"
+}

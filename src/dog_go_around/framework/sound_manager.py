@@ -1,9 +1,17 @@
 from __future__ import annotations
 import os
+import sys
 from typing import Dict
-import numpy as np
 import pygame
 from . import config
+
+# Check if numpy is available (not in pygbag/web)
+try:
+    import numpy as np
+
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 
 class SoundManager:
@@ -54,10 +62,14 @@ class SoundManager:
         """Generate a short beep tone and store it under the given key.
 
         Uses numpy to synthesize a sine wave compatible with pygame.sndarray.
+        Skips gracefully if numpy is not available (web/pygbag environment).
         """
         if not self._ready:
             self.init()
         if not self._ready:
+            return
+        if not HAS_NUMPY:
+            # Skip tone generation on web - numpy not available
             return
         try:
             sample_rate = 44100
